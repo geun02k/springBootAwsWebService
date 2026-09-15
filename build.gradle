@@ -33,6 +33,9 @@ repositories {
 // Spring Boot의 dependency management가 관리하는 의존성은 버전을 직접 명시하지 않아도 관리되는 버전이 적용됨
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
+    compile('org.projectlombok:lombok')
+
+    annotationProcessor('org.projectlombok:lombok')
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
 }

@@ -1,6 +1,8 @@
 package com.book.spring.boot.aws.web.service.service;
 
+import com.book.spring.boot.aws.web.service.domain.posts.Posts;
 import com.book.spring.boot.aws.web.service.domain.posts.PostsRepository;
+import com.book.spring.boot.aws.web.service.web.dto.PostsResponseDto;
 import com.book.spring.boot.aws.web.service.web.dto.PostsSaveRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,5 +17,12 @@ public class PostsService {
     @Transactional
     public Long save(PostsSaveRequestDto requestDto) {
         return postsRepository.save(requestDto.toEntity()).getId();
+    }
+
+    public PostsResponseDto findById(Long id) {
+        Posts entity = postsRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + id));
+
+        return new PostsResponseDto(entity);
     }
 }

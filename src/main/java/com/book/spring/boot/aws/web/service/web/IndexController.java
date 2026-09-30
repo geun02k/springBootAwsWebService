@@ -11,4 +11,9 @@ public class IndexController {
         return "index";
     }
 
+    @GetMapping("/posts/save")
+    public String postSave() {
+        return "posts-save";
+    }
+
 }

@@ -40,3 +40,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### oauth : The OAuth configuration file is excluded from version control for security reasons. ###
+application-oauth.properties

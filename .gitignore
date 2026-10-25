@@ -40,3 +40,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### oauth : The OAuth configuration file is excluded from version control for security reasons. ###
+application-oauth.properties
+### OAuth credentials and private keys are excluded from version control for security reasons. ###
+**/src/main/resources/secrets/**

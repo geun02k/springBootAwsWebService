@@ -35,6 +35,8 @@ JAR_NAME=$(ls -tr $REPOSITORY/ | grep *.jar | tail -n 1)
 
 echo "> JAR name: $JAR_NAME"
 nohup java \
-    -Dspring.config.location=classpath:/application.properties,\
-/home/ec2-user/app/application-oauth.properties \
-    -jar $REPOSITORY/$JAR_NAME 2>&1 &
+      -Dspring.config.location=classpath:/application.properties,\
+/home/ec2-user/app/application-oauth.properties,\
+/home/ec2-user/app/application-real-db.properties \
+      -Dspring.profiles/active=real \
+      -jar $REPOSITORY/$JAR_NAME 2>&1 &

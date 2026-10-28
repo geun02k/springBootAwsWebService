@@ -45,3 +45,6 @@ bin/
 application-oauth.properties
 ### OAuth credentials and private keys are excluded from version control for security reasons. ###
 **/src/main/resources/secrets/**
+
+### real-db : The production database configuration file is excluded from version control for security reasons. ###
+application-real-db.properties

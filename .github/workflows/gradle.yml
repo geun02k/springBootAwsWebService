@@ -13,6 +13,16 @@ jobs:
   build:                   # build는 개발자가 임의로 정한 작업의 식별자
     runs-on: ubuntu-latest # GitHub Actions가 작업을 실행할 환경(컴퓨터)을 GitHub가 제공하는 Ubuntu로 지정
 
+    # build 작업에서 사용할 환경 변수 호출
+    env:
+      # AWS ACCESS KEY (GitHub Secrets에 등록한 AWS 인증 정보)
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+      # AWS 설정
+      PROJECT_NAME: springBootAwsWebService
+      AWS_REGION: ap-northeast-2
+      S3_BUCKET: springboot-aws-webservice-build-230001290551-ap-northeast-2-an
+
     # 수행할 작업 단계
     steps:
       # 1. 저장소 코드 내려받기
@@ -34,3 +44,32 @@ jobs:
       # 4. 빌드 및 테스트
       - name: Build and test
         run: ./gradlew clean build # run: 실행할 셸 명령어 지정
+
+      # 5. 프로젝트 ZIP 압축
+      - name: Make zip file
+        if: github.event_name == 'push'
+        run: zip -r ${{ env.PROJECT_NAME }}.zip *
+
+      # 6. deploy 디렉터리 생성
+      - name: Make deploy directory
+        if: github.event_name == 'push'
+        run: mkdir -p deploy
+
+      # 7. 생성한 ZIP 파일 deploy 디렉터리로 이동
+      - name: Move zip file
+        if: github.event_name == 'push'
+        run: mv ${{ env.PROJECT_NAME }}.zip deploy/${{ env.PROJECT_NAME }}.zip
+
+      # 8. AWS 인증 설정
+      - name: Configure AWS credentials
+        if: github.event_name == 'push'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 9. S3에 ZIP 파일 업로드
+      - name: Upload to S3
+        if: github.event_name == 'push'
+        run: aws s3 cp deploy/${{ env.PROJECT_NAME }}.zip s3://${{ env.S3_BUCKET }}/

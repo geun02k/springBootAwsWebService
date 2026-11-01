@@ -13,6 +13,11 @@ jobs:
   build:                   # build는 개발자가 임의로 정한 작업의 식별자
     runs-on: ubuntu-latest # GitHub Actions가 작업을 실행할 환경(컴퓨터)을 GitHub가 제공하는 Ubuntu로 지정
 
+    # build 작업에서 사용할 환경 변수 호출
+    env:
+      # AWS ACCESS KEY (GitHub Secrets에 등록한 AWS 인증 정보)
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
     # 수행할 작업 단계
     steps:
       # 1. 저장소 코드 내려받기

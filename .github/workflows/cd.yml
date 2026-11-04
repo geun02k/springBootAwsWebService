@@ -1,0 +1,58 @@
+# 워크플로우 이름 (Github Actions 작업 식별자)
+name: Deploy
+
+# 워크플로우가 실행되는 조건 (Java CI with Gradle이라는 workflow가 master 브랜치에서 CI 성공 후 자동 배포)
+on:
+  workflow_run:        # 다른 workflow 완료 시 실행
+    workflows: ["Java CI with Gradle"]
+    types: [completed] # 성공과 실패를 모두 포함
+    branches: [master]
+
+# 워크플로우에서 실행할 작업 정의
+jobs:
+  deploy: # deploy는 개발자가 임의로 정한 작업의 식별자
+    # CI가 성공한 경우에만 배포
+    # Pull Request로 실행된 CI는 제외
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+
+    runs-on: ubuntu-latest
+
+    # build 작업에서 사용할 환경 변수 호출
+    env:
+      # AWS ACCESS KEY (GitHub Secrets에 등록한 AWS 인증 정보)
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+      # AWS 설정
+      REPOSITORY: /home/ec2-user/app/step2
+      PROJECT_NAME: springBootAwsWebService
+      EC2_USER: ec2-user
+      AWS_REGION: ap-northeast-2
+      S3_BUCKET: springboot-aws-webservice-build-230001290551-ap-northeast-2-an
+
+    steps:
+      # 1. AWS 인증 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 2. SSM을 통한 EC2에 배포 명령 전달
+      # 2-1. EC2 서버에 배포 파일을 저장할 디렉터리 생성
+      # 2-2. S3에서 배포 ZIP 파일을 EC2 서버로 다운로드
+      # 2.3. 다운로드한 ZIP 파일의 압축 해제
+      # 2-4. EC2 서버에 있는 배포 스크립트 실행
+      - name: Deploy to EC2
+        run: | 
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --parameters 'commands=[
+              "sudo -u ${{ env.EC2_USER }} mkdir -p ${{ env.REPOSITORY }}/zip",
+              "sudo -u ${{ env.EC2_USER }} aws s3 cp s3://${{ env.S3_BUCKET }}/${{ env.PROJECT_NAME }}.zip ${{ env.REPOSITORY }}/${{ env.PROJECT_NAME }}.zip",
+              "sudo -u ${{ env.EC2_USER }} unzip -o ${{ env.REPOSITORY }}/${{ env.PROJECT_NAME }}.zip -d ${{ env.REPOSITORY }}/zip",
+              "sudo -u ${{ env.EC2_USER }} bash ${{ env.REPOSITORY }}/deploy.sh"
+            ]'

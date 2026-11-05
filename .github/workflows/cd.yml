@@ -40,19 +40,59 @@ jobs:
           aws-secret-access-key: ${{ env.AWS_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 2. SSM을 통한 EC2에 배포 명령 전달
+      # 2. SSM을 통한 EC2에 배포 명령 전달 및 실행 결과 확인
       # 2-1. EC2 서버에 배포 파일을 저장할 디렉터리 생성
       # 2-2. S3에서 배포 ZIP 파일을 EC2 서버로 다운로드
       # 2.3. 다운로드한 ZIP 파일의 압축 해제
       # 2-4. EC2 서버에 있는 배포 스크립트 실행
+      # 2-5. 정상 배포 확인: 애플리케이션 HTTP 응답 확인
       - name: Deploy to EC2
         run: | 
-          aws ssm send-command \
+          # 2-1. EC2에 배포 명령 전달 후 명령 ID 저장
+          COMMAND_ID=$(aws ssm send-command \
             --document-name "AWS-RunShellScript" \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --parameters 'commands=[
               "sudo -u ${{ env.EC2_USER }} mkdir -p ${{ env.REPOSITORY }}/zip",
               "sudo -u ${{ env.EC2_USER }} aws s3 cp s3://${{ env.S3_BUCKET }}/${{ env.PROJECT_NAME }}.zip ${{ env.REPOSITORY }}/${{ env.PROJECT_NAME }}.zip",
               "sudo -u ${{ env.EC2_USER }} unzip -o ${{ env.REPOSITORY }}/${{ env.PROJECT_NAME }}.zip -d ${{ env.REPOSITORY }}/zip",
-              "sudo -u ${{ env.EC2_USER }} bash ${{ env.REPOSITORY }}/deploy.sh"
-            ]'
+              "sudo -u ${{ env.EC2_USER }} bash ${{ env.REPOSITORY }}/deploy.sh",
+              "sudo -u ${{ env.EC2_USER }} curl --retry 30 --retry-delay 2 --retry-connrefused --fail --silent --show-error http://localhost:8080/"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+          echo "> SSM Command ID: $COMMAND_ID"
+
+          # 2-2. SSM 명령 실행 결과 확인
+          for i in {1..60}; do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id "$COMMAND_ID" \
+              --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
+              --query "Status" \
+              --output text 2>/dev/null || true)
+            echo "> 현재 배포 상태: $STATUS"
+
+            # 명령 실행 성공
+            if [ "$STATUS" = "Success" ]; then
+              echo "> EC2 배포 및 애플리케이션 상태 확인 성공"
+              break
+            fi
+
+            # 명령 실행 실패
+            if [[ "$STATUS" == "Failed" || "$STATUS" == "Cancelled" || "$STATUS" == "TimedOut" ]]; then
+              echo "> EC2 배포 실패"
+              aws ssm get-command-invocation \
+                --command-id "$COMMAND_ID" \
+                --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
+                --output json
+              exit 1
+            fi
+          
+            sleep 5
+          done
+
+          # 2-3. 제한 시간 내에 성공하지 못한 경우 실패 처리
+          if [ "$STATUS" != "Success" ]; then
+            echo "> 배포 결과 확인 시간 초과"
+            exit 1
+          fi

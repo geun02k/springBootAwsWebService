@@ -20,7 +20,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 group = 'com.book'
-version = '1.0-SNAPSHOT'
+version = '1.0.1-SNAPSHOT'
 // Gradle의 Java 플러그인이 제공하는 설정값 (Java 컴파일 기준 명시)
 sourceCompatibility = 1.8
 

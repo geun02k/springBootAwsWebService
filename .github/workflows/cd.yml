@@ -53,6 +53,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
             --parameters 'commands=[
+              "set -e",
               "sudo -u ${{ env.EC2_USER }} mkdir -p ${{ env.REPOSITORY }}/zip",
               "sudo -u ${{ env.EC2_USER }} aws s3 cp s3://${{ env.S3_BUCKET }}/${{ env.PROJECT_NAME }}.zip ${{ env.REPOSITORY }}/${{ env.PROJECT_NAME }}.zip",
               "sudo -u ${{ env.EC2_USER }} unzip -o ${{ env.REPOSITORY }}/${{ env.PROJECT_NAME }}.zip -d ${{ env.REPOSITORY }}/zip",

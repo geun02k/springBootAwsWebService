@@ -6,7 +6,7 @@ on:
   push:
     branches: [ master ] # master에 직접 푸시한 경우
   pull_request:
-    branches: [ master ] # 다른 브랜치 PR을 master에 머지한 경우
+    branches: [ master ] # master 브랜치를 대상으로 PR을 생성하거나 수정한 경우
 
 # 워크플로우에서 실행할 작업 정의
 jobs:
@@ -45,22 +45,36 @@ jobs:
       - name: Build and test
         run: ./gradlew clean build # run: 실행할 셸 명령어 지정
 
-      # 5. 프로젝트 ZIP 압축
+      # 5. 배포에 필요한 파일을 담을 디렉터리 생성
+      - name: Make before-deploy directory
+        if: github.event_name == 'push'
+        run: mkdir -p before-deploy
+
+      # 6. 배포에 필요한 파일만 before-deploy로 복사
+      - name: Copy deployment files
+        if: github.event_name == 'push'
+        run: |
+          cp scripts/*.sh before-deploy/
+          cp build/libs/*.jar before-deploy
+
+      # 7. 배포에 필요한 파일만 ZIP 압축
       - name: Make zip file
         if: github.event_name == 'push'
-        run: zip -r ${{ env.PROJECT_NAME }}.zip *
+        run: |
+          cd before-deploy/
+          zip -r ${{ env.PROJECT_NAME }}.zip . 
 
-      # 6. deploy 디렉터리 생성
+      # 8. deploy 디렉터리 생성
       - name: Make deploy directory
         if: github.event_name == 'push'
         run: mkdir -p deploy
 
-      # 7. 생성한 ZIP 파일 deploy 디렉터리로 이동
+      # 9. 생성한 ZIP 파일 deploy 디렉터리로 이동
       - name: Move zip file
         if: github.event_name == 'push'
-        run: mv ${{ env.PROJECT_NAME }}.zip deploy/${{ env.PROJECT_NAME }}.zip
+        run: mv before-deploy/${{ env.PROJECT_NAME }}.zip deploy/
 
-      # 8. AWS 인증 설정
+      # 10. AWS 인증 설정
       - name: Configure AWS credentials
         if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v4
@@ -69,7 +83,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 9. S3에 ZIP 파일 업로드
+      # 11. S3에 ZIP 파일 업로드
       - name: Upload to S3
         if: github.event_name == 'push'
         run: aws s3 cp deploy/${{ env.PROJECT_NAME }}.zip s3://${{ env.S3_BUCKET }}/

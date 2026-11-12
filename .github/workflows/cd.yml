@@ -25,7 +25,7 @@ jobs:
       AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
       AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
       # AWS 설정
-      REPOSITORY: /home/ec2-user/app/step2
+      REPOSITORY: /home/ec2-user/app/step3
       PROJECT_NAME: springBootAwsWebService
       EC2_USER: ec2-user
       AWS_REGION: ap-northeast-2

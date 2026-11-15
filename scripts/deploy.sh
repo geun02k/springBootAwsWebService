@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # 배포 시 stop.sh의 PID와 동알하면 제거해도 무방함
 echo "> 배포 전, 기존 구동중인 애플리케이션 pid 확인"
 CURRENT_PID=$(pgrep -f "${PROJECT_NAME}.*.\jar")

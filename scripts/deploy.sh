@@ -21,3 +21,5 @@ $SCRIPT_DIR/health.sh
 
 echo "> 기존 애플리케이션 종료"
 $SCRIPT_DIR/stop.sh
+
+echo "> 배포를 완료합니다."

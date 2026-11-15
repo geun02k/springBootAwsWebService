@@ -16,7 +16,8 @@ sleep 10
 
 for RETRY_COUNT in {1..10}
 do
-	RESPONSE=$(curl -s http://localhost:${IDLE_PORT}/profile)
+  # curl 실패 시 종료코드 0 반환해 set -e에 의해 스크립트 종료 방지
+	RESPONSE=$(curl -s http://localhost:${IDLE_PORT}/profile || true)
 	UP_COUNT=$(echo ${RESPONSE} | grep 'real' | wc -l)
 
   # "real" 문자열이 있는지 검증

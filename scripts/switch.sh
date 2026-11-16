@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-ABSPATH=$(readlink 0f $0)
+set -e
+
+ABSPATH=$(readlink -f $0)
 ABSDIR=$(dirname $ABSPATH)
 source ${ABSDIR}/profile.sh
 
@@ -14,5 +16,5 @@ function switch_proxy() {
       | sudo tee /etc/nginx/conf.d/service-url.inc
 
     echo "> Nginx Reload"
-    sudo servive nginx reload
+    sudo service nginx reload
 }

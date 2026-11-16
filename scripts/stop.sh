@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # 현재 stop.sh 파일의 절대 경로
 ABSPATH="$(readlink -f $0)"
 # 현재 stop.sh 파일이 존재하는 디렉터리

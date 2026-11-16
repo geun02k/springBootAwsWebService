@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-ABSPATH=$(realdlink -f $0)
+set -e
+
+ABSPATH=$(readlink -f $0)
 ABSDIR=$(dirname $ABSPATH)
 source ${ABSDIR}/profile.sh
 source ${ABSDIR}/switch.sh
@@ -12,13 +14,14 @@ echo "> IDLE_PORT: $IDLE_PORT"
 echo "> curl -s http://localhost:$IDLE_PORT/profile 수행"
 sleep 10
 
-for RETRY_COUNT in {1...10}
+for RETRY_COUNT in {1..10}
 do
-	RESPONSE=$(curl -s http://localhost:${IDLE_PORT}/profile)
+  # curl 실패 시 종료코드 0 반환해 set -e에 의해 스크립트 종료 방지
+	RESPONSE=$(curl -s http://localhost:${IDLE_PORT}/profile || true)
 	UP_COUNT=$(echo ${RESPONSE} | grep 'real' | wc -l)
 
   # "real" 문자열이 있는지 검증
-	if [ $(UP_COUNT) -ge 1 ] # real 문자열 존재
+	if [ ${UP_COUNT} -ge 1 ] # real 문자열 존재
 	then
 		echo "> Health check 성공"
 		switch_proxy # Nginx 프록시 대상 변경

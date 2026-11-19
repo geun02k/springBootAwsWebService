@@ -2,6 +2,10 @@
 
 set -e
 
+REPOSITORY=/home/ec2-user/app/step3
+SCRIPT_DIR=$REPOSITORY/scripts
+PROJECT_NAME=springBootAwsWebService
+
 # 배포 시 stop.sh의 PID와 동알하면 제거해도 무방함
 echo "> 배포 전, 기존 구동중인 애플리케이션 pid 확인"
 # set -e 활성화로 인한 명령어 실패 시 스크립트 종료 방지

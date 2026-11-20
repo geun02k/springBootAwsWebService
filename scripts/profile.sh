@@ -25,6 +25,40 @@ function find_idle_profile() {
   echo "${IDLE_PROFILE}"
 }
 
+# profile에 대한 port 반환
+function find_port_by_profile() {
+  local PROFILE=$1
+
+  if [ "${PROFILE}" == "real1" ]
+  then
+    echo "8081"
+  elif [ "${PROFILE}" == "real2" ]
+  then
+    echo "8082"
+  else
+    # 오류 메시지는 파일이 아닌 표준 오류로 출력
+    echo "> 잘못된 프로필입니다: ${PROFILE}" >&2
+    return 1
+  fi
+}
+
+# 반대 port 반환
+function find_reverse_port() {
+  local ORIGINAL_PORT=$1
+
+  if [ "${ORIGINAL_PORT}" == "8081" ]
+  then
+    echo "8082"
+  elif [ "${ORIGINAL_PORT}" == "8082" ]
+  then
+    echo "8081"
+  else
+    # 오류 메시지는 파일이 아닌 표준 오류로 출력
+    echo "> 잘못된 포트입니다: ${ORIGINAL_PORT}" >&2
+    return 1
+  fi
+}
+
 # 쉬고 있는 profile의 port 찾기
 function find_idle_port() {
   IDLE_PROFILE=$(find_idle_profile)

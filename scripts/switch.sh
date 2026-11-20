@@ -2,13 +2,10 @@
 
 set -e
 
-ABSPATH=$(readlink -f $0)
-ABSDIR=$(dirname $ABSPATH)
-source ${ABSDIR}/profile.sh
-
 # 포트 전환
 function switch_proxy() {
-    IDLE_PORT=$(find_idle_port)
+    # health.sh에서 전달받은 포트
+    local IDLE_PORT=$1
 
     echo "> 전환할 Port: $IDLE_PORT"
     echo "> Service URL Port 전환"

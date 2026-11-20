@@ -4,10 +4,10 @@ set -e
 
 ABSPATH=$(readlink -f $0)
 ABSDIR=$(dirname $ABSPATH)
-source ${ABSDIR}/profile.sh
 source ${ABSDIR}/switch.sh
 
-IDLE_PORT=$(find_idle_port)
+# deploy.sh에서 전달받은 새 애플리케이션 포트
+IDLE_PORT=$1
 
 echo "> Health Check Start!"
 echo "> IDLE_PORT: $IDLE_PORT"
@@ -16,7 +16,6 @@ sleep 10
 
 for RETRY_COUNT in {1..10}
 do
-  # curl 실패 시 종료코드 0 반환해 set -e에 의해 스크립트 종료 방지
 	RESPONSE=$(curl -s http://localhost:${IDLE_PORT}/profile || true)
 	UP_COUNT=$(echo ${RESPONSE} | grep 'real' | wc -l)
 
@@ -24,7 +23,8 @@ do
 	if [ ${UP_COUNT} -ge 1 ] # real 문자열 존재
 	then
 		echo "> Health check 성공"
-		switch_proxy # Nginx 프록시 대상 변경
+		# Nginx 프록시 대상 변경 (Health Check에 성공한 포트를 Nginx에 전달)
+		switch_proxy "$IDLE_PORT"
 		break
 	else # real 문자열 미존재
 		echo "> Health check의 응답을 알 수 없거나 혹은 실행 상태가 아닙니다."

@@ -2,23 +2,17 @@
 
 set -e
 
-# 현재 stop.sh 파일의 절대 경로
-ABSPATH="$(readlink -f $0)"
-# 현재 stop.sh 파일이 존재하는 디렉터리
-ABSDIR=$(dirname $ABSPATH)
-# profile.sh import
-source ${ABSDIR}/profile.sh
+# deploy.sh에서 전달받은 기존 애플리케이션 포트
+OLD_PORT=$1
 
-IDLE_PORT=$(find_idle_port)
+echo "> ${OLD_PORT} 에서 기존 구동 중인 애플리케이션 pid 확인"
 
-echo "> $IDLE_PORT 에서 기존 구동 중인 애플리케이션 pid 확인"
-IDLE_PID=$(lsof -ti tcp:${IDLE_PORT})
-
-if [ -z ${IDLE_PID} ]
+if [ -z ${OLD_PORT} ]
 then
   echo "> 기존 구동 중인 애플리케이션이 없으므로 종료하지 않습니다."
 else
-  echo "> kill -15 $IDLE_PID"
-  kill -15 ${IDLE_PID}
+  OLD_PID=$(lsof -ti tcp:${OLD_PORT} || true)
+  echo "> kill -15 ${OLD_PID}"
+  kill -15 ${OLD_PID}
   sleep 5
 fi

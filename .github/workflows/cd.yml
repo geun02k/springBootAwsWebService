@@ -58,7 +58,7 @@ jobs:
               "sudo -u ${{ env.EC2_USER }} aws s3 cp s3://${{ env.S3_BUCKET }}/${{ env.PROJECT_NAME }}.zip ${{ env.REPOSITORY }}/${{ env.PROJECT_NAME }}.zip",
               "sudo -u ${{ env.EC2_USER }} unzip -o ${{ env.REPOSITORY }}/${{ env.PROJECT_NAME }}.zip -d ${{ env.REPOSITORY }}/zip",
               "sudo -u ${{ env.EC2_USER }} bash ${{ env.REPOSITORY }}/deploy.sh",
-              "sudo -u ${{ env.EC2_USER }} curl --retry 30 --retry-delay 2 --retry-connrefused --fail --silent --show-error http://localhost:8080/"
+              "sudo -u ${{ env.EC2_USER }} curl --retry 30 --retry-delay 2 --retry-connrefused --fail --silent --show-error http://localhost/"
             ]' \
             --query "Command.CommandId" \
             --output text)
